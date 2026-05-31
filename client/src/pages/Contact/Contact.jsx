@@ -387,7 +387,7 @@ const handleSubmit = async (e) => {
               <h2 className="text-lg font-bold tracking-tight">Direct Channels</h2>
               <div className="mt-6 space-y-4">
                 {[
-                  { icon: Mail, label: "Secure Inbound Email", val: "contact@skylinewebco.com", href: "mailto:contact@skylinewebco.com" },
+                  { icon: Mail, label: "Secure Inbound Email", val: "skylinewebco08@gmail.com", href: "mailto:contact@skylinewebco.com" },
                   { icon: Phone, label: "Direct Operations Desk", val: "+977-XXXXXXXXX", href: "tel:+977XXXXXXXXX" },
                   { icon: MessageCircle, label: "Encrypted WhatsApp Node", val: "Instant Support Active", href: "https://wa.me/8936091025" },
                 ].map((item, i) => (

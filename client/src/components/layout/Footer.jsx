@@ -122,7 +122,7 @@ const Footer = () => {
             <ul className={`space-y-4 ${isDark ? "text-neutral-400" : "text-slate-500"}`}>
               <li className="flex items-center gap-3">
                 <Mail size={16} className={isDark ? "text-yellow-500 shrink-0" : "text-sky-500 shrink-0"} />
-                <span>your@email.com</span>
+                <span>skylinewebco08@gmail.com</span>
               </li>
               <li className="flex items-center gap-3">
                 <Phone size={16} className={isDark ? "text-yellow-500 shrink-0" : "text-sky-500 shrink-0"} />
