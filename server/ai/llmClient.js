@@ -1,19 +1,48 @@
+// server/ai/llmClient.js
+
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { GoogleGenAI } from "@google/genai";
+import Groq from "groq-sdk";
 import { env } from "../config/env.js";
 
-const geminiChat =
-  new GoogleGenerativeAI(
-    env.gemini.apiKey
-  );
+/**
+ * =========================
+ * CLIENTS
+ * =========================
+ */
 
-const genAI =
-  new GoogleGenAI({
-    apiKey: env.gemini.apiKey,
-  });
+const gemini = new GoogleGenerativeAI(env.gemini.apiKey);
+const genAI = new GoogleGenAI({ apiKey: env.gemini.apiKey });
+
+const groq = new Groq({
+  apiKey: env.groq.apiKey,
+});
 
 /**
- * Chat completion
+ * =========================
+ * SAFE GROQ MESSAGE FORMATTER
+ * =========================
+ */
+function sanitizeForGroq(messages) {
+  return messages
+    .filter((m) =>
+      ["system", "user", "assistant"].includes(m.role)
+    )
+    .map((m) => ({
+      role: m.role,
+      content:
+        typeof m.content === "string"
+          ? m.content
+          : JSON.stringify(m.content),
+    }));
+}
+
+/**
+ * =========================
+ * CHAT COMPLETION (HYBRID)
+ * =========================
+ * Groq = primary
+ * Gemini = fallback (DISABLED SAFELY)
  */
 export async function chatCompletion({
   messages,
@@ -29,167 +58,155 @@ export async function chatCompletion({
     (m) => m.role !== "system"
   );
 
-  const modelConfig = {
-    model: env.gemini.model,
-    generationConfig: {
-      maxOutputTokens: maxTokens,
-      temperature,
-    },
-  };
-
-  if (tools.length > 0) {
-    modelConfig.tools = [
-      {
-        functionDeclarations: tools.map(
-          toGeminiFunctionDecl
-        ),
-      },
-    ];
-  }
-
- const model =
-  geminiChat.getGenerativeModel(
-    modelConfig
-  );
-
-  const history = conversation
-    .slice(0, -1)
-    .map(toGeminiMessage)
-    .filter(Boolean);
-
-  const chat = model.startChat({
-    systemInstruction:
-      systemMessage?.content || "",
-    history,
-  });
-
   const lastMessage =
-    conversation[conversation.length - 1];
+    conversation.length > 0
+      ? conversation[conversation.length - 1]
+      : null;
 
-  const result = await chat.sendMessage(
-    lastMessage?.content || ""
-  );
+  const groqMessages = sanitizeForGroq([
+    ...(systemMessage ? [systemMessage] : []),
+    ...conversation,
+  ]);
 
-  return result;
+  try {
+    /**
+     * =========================
+     * GROQ PRIMARY PATH
+     * =========================
+     */
+    const response = await groq.chat.completions.create({
+      model: "llama-3.1-8b-instant",
+      messages: groqMessages,
+      temperature,
+      max_tokens: maxTokens,
+    });
+
+    return {
+      provider: "groq",
+      response,
+    };
+  } catch (err) {
+    console.warn("[Groq Error]", err.message);
+
+    /**
+     * =========================
+     * GEMINI FALLBACK (SAFE MODE)
+     * =========================
+     * IMPORTANT:
+     * Disabled tool usage to avoid quota + format conflicts
+     */
+    const model = gemini.getGenerativeModel({
+      model: "gemini-2.5-flash",
+      systemInstruction: systemMessage?.content || "",
+      generationConfig: {
+        maxOutputTokens: maxTokens,
+        temperature,
+      },
+    });
+
+    const result = await model.generateContent({
+      contents: [
+        {
+          role: "user",
+          parts: [
+            {
+              text:
+                lastMessage?.content || "",
+            },
+          ],
+        },
+      ],
+    });
+
+    return {
+      provider: "gemini",
+      response: result,
+    };
+  }
 }
 
 /**
- * Create embedding vector
+ * =========================
+ * EMBEDDINGS (UNCHANGED)
+ * =========================
  */
 export async function createEmbedding(text) {
-  const response =
-    await genAI.models.embedContent({
-      model: "gemini-embedding-001",
-      contents: text.slice(0, 8000),
-    });
+  const response = await genAI.models.embedContent({
+    model: "gemini-embedding-001",
+    contents: text.slice(0, 8000),
+  });
 
   return response.embeddings[0].values;
 }
 
 /**
- * Extract response text
+ * =========================
+ * EXTRACT CONTENT (ROBUST)
+ * =========================
  */
-export function extractContent(response) {
+export function extractContent(wrapper) {
   try {
-    return response.response?.text?.() || "";
+    const response = wrapper?.response;
+
+    if (!response) return "";
+
+    // GROQ
+    if (wrapper.provider === "groq") {
+      return (
+        response?.choices?.[0]?.message?.content || ""
+      );
+    }
+
+    // GEMINI
+    return (
+      response?.response?.candidates?.[0]?.content
+        ?.parts?.[0]?.text || ""
+    );
   } catch {
     return "";
   }
 }
 
 /**
- * Alias for compatibility
+ * =========================
+ * TOOL CALLS (GEMINI ONLY - UNCHANGED)
+ * =========================
  */
-export const extractText = extractContent;
+export function extractToolCalls(wrapper) {
+  const response = wrapper?.response;
 
-/**
- * Extract Gemini function calls
- */
-export function extractToolCalls(response) {
   const parts =
-    response.response?.candidates?.[0]
-      ?.content?.parts || [];
+    response?.response?.candidates?.[0]?.content?.parts ||
+    [];
 
   const functionCalls = parts
-    .map((part) => part.functionCall)
+    .map((p) => p.functionCall)
     .filter(Boolean);
 
-  if (functionCalls.length === 0) {
-    return null;
-  }
+  if (!functionCalls.length) return null;
 
-  return functionCalls.map((call, index) => ({
-    id: `call_${index}_${call.name}`,
+  return functionCalls.map((call, i) => ({
+    id: `call_${i}_${call.name}`,
     function: {
       name: call.name,
-      arguments: JSON.stringify(
-        call.args || {}
-      ),
+      arguments: JSON.stringify(call.args || {}),
     },
   }));
 }
 
-/**
- * Whether model requested tool execution
- */
-export function wantsToolCall(response) {
-  const calls =
-    extractToolCalls(response);
-
-  return (
-    Array.isArray(calls) &&
-    calls.length > 0
-  );
+export function wantsToolCall(wrapper) {
+  return Boolean(extractToolCalls(wrapper));
 }
 
 /**
- * Convert app message format
- * to Gemini history format
- */
-function toGeminiMessage(msg) {
-  if (!msg) return null;
-
-  if (msg.role === "system") {
-    return null;
-  }
-
-  if (msg.role === "tool") {
-    return {
-      role: "user",
-      parts: [
-        {
-          text:
-            typeof msg.content === "string"
-              ? msg.content
-              : JSON.stringify(msg.content),
-        },
-      ],
-    };
-  }
-
-  return {
-    role:
-      msg.role === "assistant"
-        ? "model"
-        : "user",
-    parts: [
-      {
-        text: msg.content || "",
-      },
-    ],
-  };
-}
-
-/**
- * OpenAI-style tool schema
- * → Gemini function declaration
+ * =========================
+ * TOOL CONVERTER (UNCHANGED)
+ * =========================
  */
 function toGeminiFunctionDecl(tool) {
   return {
     name: tool.function.name,
-    description:
-      tool.function.description,
-    parameters:
-      tool.function.parameters,
+    description: tool.function.description,
+    parameters: tool.function.parameters,
   };
 }

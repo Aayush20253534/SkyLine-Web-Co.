@@ -2,7 +2,7 @@ import { useChatbot } from "../../hooks/useChatbot";
 
 const QUICK_PROMPTS = [
   "What can you do?",
-  "Tell me about Aayush",
+  "Tell me about Skyline Web Co.",
   "View projects",
   "Get in touch",
 ];

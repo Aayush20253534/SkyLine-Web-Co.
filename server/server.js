@@ -87,17 +87,16 @@ app.use((req, res) => {
 // ─────────────────────────────────────────────
 
 app.use((err, req, res, next) => {
-  console.error("[SERVER ERROR]", err);
+  console.error("========== ERROR ==========");
+  console.error(err);
+  console.error(err.stack);
+  console.error("===========================");
 
   res.status(err.status || 500).json({
     success: false,
-    message:
-      process.env.NODE_ENV === "production"
-        ? "Internal Server Error"
-        : err.message,
+    message: err.message,
   });
 });
-
 // ─────────────────────────────────────────────
 // Server Startup
 // ─────────────────────────────────────────────

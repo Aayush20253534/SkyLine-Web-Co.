@@ -1,20 +1,12 @@
 // server/ai/intentClassifier.js
-// Lightweight intent classification using a small LLM call.
-// Runs before the main agent to:
-//   1. Detect the primary intent category
-//   2. Extract any structured data present in the message (email, name, etc.)
-//   3. Update session qualification stage
-//
-// This is a cheap call (small model, strict JSON output) that guides the agent
-// on what to prioritize in its system prompt context injection.
 
 import { chatCompletion, extractContent } from "./llmClient.js";
 
 export const INTENTS = {
   GREETING: "greeting",
   PORTFOLIO_QUESTION: "portfolio_question",
-  LEAD_INTEREST: "lead_interest",          // "I need a developer / I have a project"
-  LEAD_QUALIFICATION: "lead_qualification", // answering qualification questions
+  LEAD_INTEREST: "lead_interest",
+  LEAD_QUALIFICATION: "lead_qualification",
   BOOK_MEETING: "book_meeting",
   PROPOSAL_REQUEST: "proposal_request",
   PRICING_QUESTION: "pricing_question",
@@ -22,45 +14,79 @@ export const INTENTS = {
   UNKNOWN: "unknown",
 };
 
-const CLASSIFIER_PROMPT = `You are an intent classifier for a developer portfolio chatbot.
+const CLASSIFIER_PROMPT = `
+You are an intent classifier for a developer portfolio chatbot.
 
-Classify the user's message into exactly one of these intents:
+Return ONLY valid JSON.
+
+No markdown.
+No backticks.
+No extra text.
+No explanations.
+No trailing commas.
+
+Allowed intents:
 - greeting
-- portfolio_question     (asking about skills, projects, experience, tech stack)
-- lead_interest          (wants to hire, needs a developer, has a project idea)
-- lead_qualification     (providing project details: type, budget, timeline, email, name)
-- book_meeting           (wants to schedule a call or consultation)
-- proposal_request       (asking for a project proposal or quote)
-- pricing_question       (asking about rates, costs, pricing)
-- general_chat           (small talk, off-topic)
+- portfolio_question
+- lead_interest
+- lead_qualification
+- book_meeting
+- proposal_request
+- pricing_question
+- general_chat
 - unknown
 
-Also extract any structured data present in the message.
-
-Respond ONLY with a valid JSON object in this exact format:
+Output format:
 {
-  "intent": "<one of the intents above>",
-  "confidence": <0.0-1.0>,
+  "intent": "one of the intents",
+  "confidence": 0.0,
   "extracted": {
-    "name": "<string or null>",
-    "email": "<string or null>",
-    "projectType": "<string or null>",
-    "budget": "<string or null>",
-    "timeline": "<string or null>"
+    "name": null,
+    "email": null,
+    "projectType": null,
+    "budget": null,
+    "timeline": null
   }
-}`;
+}
+`;
+
+/**
+ * Safely extract JSON from messy LLM output
+ */
+function safeJsonParse(raw) {
+  if (!raw || typeof raw !== "string") {
+    throw new Error("Empty LLM response");
+  }
+
+  // Remove code fences
+  let cleaned = raw
+    .replace(/```json/g, "")
+    .replace(/```/g, "")
+    .trim();
+
+  // Try direct parse first
+  try {
+    return JSON.parse(cleaned);
+  } catch (_) {
+    // fallback: extract first JSON-like block
+    const match = cleaned.match(/\{[\s\S]*\}/);
+    if (!match) {
+      throw new Error("No JSON object found in LLM output");
+    }
+
+    return JSON.parse(match[0]);
+  }
+}
 
 /**
  * Classify the intent of a user message.
- *
- * @param {string} userMessage
- * @param {Object} sessionContext - { extractedData, qualificationStage }
- * @returns {Promise<{ intent: string, confidence: number, extracted: Object }>}
  */
 export async function classifyIntent(userMessage, sessionContext = {}) {
-  const contextHint = sessionContext.qualificationStage !== "none"
-    ? `\n[Session context: currently in "${sessionContext.qualificationStage}" stage]`
-    : "";
+  const contextHint =
+    sessionContext.qualificationStage &&
+    sessionContext.qualificationStage !== "none"
+      ? `\nSession stage: ${sessionContext.qualificationStage}`
+      : "";
 
   try {
     const response = await chatCompletion({
@@ -73,25 +99,40 @@ export async function classifyIntent(userMessage, sessionContext = {}) {
       ],
       tools: undefined,
       maxTokens: 200,
-      temperature: 0.1,
+      temperature: 0,
     });
 
     const raw = extractContent(response);
-    // Strip any markdown fences if model wraps in them
-    const clean = raw.replace(/```json|```/g, "").trim();
-    const parsed = JSON.parse(clean);
+
+    const parsed = safeJsonParse(raw);
 
     return {
       intent: parsed.intent || INTENTS.UNKNOWN,
-      confidence: parsed.confidence || 0.5,
-      extracted: parsed.extracted || {},
+      confidence:
+        typeof parsed.confidence === "number"
+          ? parsed.confidence
+          : 0.5,
+      extracted: parsed.extracted || {
+        name: null,
+        email: null,
+        projectType: null,
+        budget: null,
+        timeline: null,
+      },
     };
   } catch (err) {
-    console.warn("[IntentClassifier] Failed to parse response:", err.message);
+    console.warn("[IntentClassifier] Failed:", err.message);
+
     return {
       intent: INTENTS.UNKNOWN,
       confidence: 0,
-      extracted: {},
+      extracted: {
+        name: null,
+        email: null,
+        projectType: null,
+        budget: null,
+        timeline: null,
+      },
     };
   }
 }

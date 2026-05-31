@@ -1,7 +1,3 @@
-// server/models/ChatSession.js
-// Persists full conversation state including messages, extracted data, and tool history.
-// This is the memory store for the agent.
-
 import mongoose from "mongoose";
 
 const messageSchema = new mongoose.Schema(
@@ -15,10 +11,8 @@ const messageSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    // For tool messages: which tool was called
     toolName: String,
     toolCallId: String,
-    // Token usage for cost tracking
     usage: {
       promptTokens: Number,
       completionTokens: Number,
@@ -51,7 +45,6 @@ const chatSessionSchema = new mongoose.Schema(
       index: true,
     },
     messages: [messageSchema],
-    // Structured data the agent has extracted so far in this session
     extractedData: {
       name: String,
       email: String,
@@ -62,7 +55,6 @@ const chatSessionSchema = new mongoose.Schema(
       intent: String,
     },
     toolHistory: [toolHistorySchema],
-    // Tracks what stage the lead qualification is at
     qualificationStage: {
       type: String,
       enum: [
@@ -85,16 +77,18 @@ const chatSessionSchema = new mongoose.Schema(
   }
 );
 
-// Auto-update lastActiveAt
-chatSessionSchema.pre("save", function (next) {
+// ✅ FIXED: no broken next() dependency
+chatSessionSchema.pre("save", function () {
   this.lastActiveAt = new Date();
-  next();
 });
 
-// Expire inactive sessions after 24 hours
+// TTL index
 chatSessionSchema.index(
   { lastActiveAt: 1 },
   { expireAfterSeconds: 86400 }
 );
 
-export const ChatSession = mongoose.model("ChatSession", chatSessionSchema);
+export const ChatSession = mongoose.model(
+  "ChatSession",
+  chatSessionSchema
+);

@@ -1,88 +1,112 @@
-// context/ChatbotContext.jsx (UPDATED — real backend calls)
-// Replaces the mock sendMessage with a fetch to POST /api/chat.
-// Manages sessionId in localStorage for session persistence across page refreshes.
+// context/ChatbotContext.jsx (FIXED + STABLE VERSION)
 
-import { createContext, useContext, useState, useCallback } from "react";
-const uuidv4 = () => crypto.randomUUID();
+import { createContext, useContext, useState, useCallback, useRef } from "react";
 
 const ChatbotContext = createContext();
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const API_URL =
+  import.meta.env.VITE_API_URL_1 ||
+  "http://localhost:5000";
 
-// Persist sessionId in localStorage so conversation survives refresh
-function getOrCreateSessionId() {
-  const stored = localStorage.getItem("chatbot_session_id");
-  if (stored) return stored;
-  const id = uuidv4();
-  localStorage.setItem("chatbot_session_id", id);
-  return id;
+// session stays stable per page load
+function createSessionId() {
+  return crypto.randomUUID();
 }
 
 export const ChatbotProvider = ({ children }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      sender: "bot",
-      text: "Hi 👋 I'm Aayush's AI assistant. I can answer questions about his work, help scope your project, or book a consultation. How can I help?",
-    },
-  ]);
+  const [messages, setMessages] = useState([]);
   const [isTyping, setIsTyping] = useState(false);
-  const [sessionId] = useState(getOrCreateSessionId);
+
+  // stable session (does NOT trigger re-renders)
+  const sessionIdRef = useRef(createSessionId());
+
+  // initialize welcome message once
+  const initializedRef = useRef(false);
+
+  if (!initializedRef.current) {
+    initializedRef.current = true;
+
+    setMessages([
+      {
+        id: crypto.randomUUID(),
+        sender: "bot",
+        text:
+          "Hi 👋 I'm Skyline Web Co.'s AI assistant. I can help you understand his work, scope projects, or book a consultation.",
+      },
+    ]);
+  }
 
   const openChat = () => setIsOpen(true);
   const closeChat = () => setIsOpen(false);
 
-  const sendMessage = useCallback(
-    async (text) => {
-      if (!text.trim()) return;
+  const sendMessage = useCallback(async (text) => {
+    const cleanText = text?.trim();
 
-      // Append user message immediately
-      const userMsg = { id: Date.now(), sender: "user", text };
-      setMessages((prev) => [...prev, userMsg]);
-      setIsTyping(true);
+    if (!cleanText) return;
 
-      try {
-        const res = await fetch(`${API_URL}/api/chat`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-session-id": sessionId,
-          },
-          body: JSON.stringify({ message: text, sessionId }),
-        });
+    const userMsg = {
+      id: crypto.randomUUID(),
+      sender: "user",
+      text: cleanText,
+    };
 
-        if (!res.ok) {
-          const err = await res.json().catch(() => ({}));
-          throw new Error(err.error || `HTTP ${res.status}`);
-        }
+    setMessages((prev) => [...prev, userMsg]);
+    setIsTyping(true);
 
-        const data = await res.json();
+    try {
+      const res = await fetch(`${API_URL}/api/chat`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-session-id": sessionIdRef.current,
+        },
+        body: JSON.stringify({
+          message: cleanText,
+          sessionId: sessionIdRef.current,
+        }),
+      });
 
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: Date.now() + 1,
-            sender: "bot",
-            text: data.reply,
-          },
-        ]);
-      } catch (err) {
-        console.error("[ChatbotContext] API error:", err.message);
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: Date.now() + 1,
-            sender: "bot",
-            text: "Sorry, I'm having trouble connecting right now. Please try again in a moment.",
-          },
-        ]);
-      } finally {
-        setIsTyping(false);
+      if (!res.ok) {
+        let errMsg = "Request failed";
+        try {
+          const err = await res.json();
+          errMsg = err?.error || errMsg;
+        } catch {}
+        throw new Error(errMsg);
       }
-    },
-    [sessionId]
-  );
+
+      let data;
+      try {
+        data = await res.json();
+      } catch {
+        throw new Error("Invalid JSON from server");
+      }
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          sender: "bot",
+          text: data?.reply || "No response received.",
+        },
+      ]);
+    } catch (err) {
+      console.error("[ChatbotContext] API error:", err.message);
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          sender: "bot",
+          text:
+            "Sorry, I'm having trouble connecting right now. Please try again in a moment.",
+        },
+      ]);
+    } finally {
+      setIsTyping(false);
+    }
+  }, []);
 
   return (
     <ChatbotContext.Provider
@@ -90,7 +114,7 @@ export const ChatbotProvider = ({ children }) => {
         isOpen,
         messages,
         isTyping,
-        sessionId,
+        sessionId: sessionIdRef.current,
         openChat,
         closeChat,
         sendMessage,
@@ -101,4 +125,5 @@ export const ChatbotProvider = ({ children }) => {
   );
 };
 
-export const useChatbotContext = () => useContext(ChatbotContext);
+export const useChatbotContext = () =>
+  useContext(ChatbotContext);
