@@ -1,0 +1,198 @@
+@import "tailwindcss";
+
+/* =========================================
+   LIGHT MODE
+========================================= */
+
+:root {
+  --background: #f6fbff;
+  --foreground: #0f172a;
+
+  --card: rgba(255, 255, 255, 0.8);
+  --border: rgba(14, 165, 233, 0.12);
+
+  --muted: #64748b;
+  --accent: #0ea5e9;
+
+  --gradient:
+    linear-gradient(
+      135deg,
+      #ffffff,
+      #eff6ff,
+      #dbeafe
+    );
+}
+
+/* =========================================
+   DARK MODE (UNCHANGED)
+========================================= */
+
+.dark {
+  --background: #0a0a0a;
+  --foreground: #ffffff;
+
+  --card: rgba(255, 255, 255, 0.05);
+  --border: rgba(255, 255, 255, 0.08);
+
+  --muted: #a1a1aa;
+  --accent: #c6a972;
+
+  --gradient:
+    linear-gradient(
+      to bottom right,
+      rgba(255,255,255,0.08),
+      rgba(255,255,255,0.03)
+    );
+}
+
+/* =========================================
+   BASE
+========================================= */
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+
+  font-family: "Inter", sans-serif;
+
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
+
+  overflow-x: hidden;
+}
+
+/* =========================================
+   LIGHT MODE AMBIENT GLOW
+========================================= */
+
+body::before {
+  content: "";
+
+  position: fixed;
+  inset: 0;
+
+  background:
+    radial-gradient(
+      circle at top right,
+      rgba(14,165,233,0.08),
+      transparent 35%
+    ),
+    radial-gradient(
+      circle at left center,
+      rgba(56,189,248,0.05),
+      transparent 30%
+    );
+
+  pointer-events: none;
+  z-index: -1;
+}
+
+.dark body::before {
+  display: none;
+}
+
+/* =========================================
+   TYPOGRAPHY
+========================================= */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: "Space Grotesk", sans-serif;
+  letter-spacing: -0.03em;
+}
+
+/* =========================================
+   UTILITIES
+========================================= */
+
+.glass {
+  background: var(--card);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+}
+
+.section-padding {
+  @apply py-24 md:py-32;
+}
+
+.container-custom {
+  @apply max-w-7xl mx-auto px-6 lg:px-8;
+}
+
+.text-muted {
+  color: var(--muted);
+}
+
+.gradient-text {
+  background: linear-gradient(
+    90deg,
+    #0f172a,
+    #0369a1,
+    #0ea5e9
+  );
+
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.dark .gradient-text {
+  background: linear-gradient(
+    90deg,
+    #ffffff,
+    #f5f5f5,
+    #c6a972
+  );
+
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* =========================================
+   SCROLLBAR
+========================================= */
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(14, 165, 233, 0.3);
+  border-radius: 999px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(198, 169, 114, 0.35);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(14, 165, 233, 0.5);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(198, 169, 114, 0.6);
+}
+
+/* =========================================
+   SELECTION
+========================================= */
+
+::selection {
+  background: rgba(14,165,233,0.2);
+}
+
+.dark ::selection {
+  background: rgba(198,169,114,0.25);
+}
