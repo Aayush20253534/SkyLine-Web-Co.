@@ -1,18 +1,6 @@
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 
-console.log("SMTP_HOST:", process.env.SMTP_HOST);
-console.log("SMTP_PORT:", process.env.SMTP_PORT);
-console.log("SMTP_USER:", process.env.SMTP_USER);
-
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: Number(process.env.SMTP_PORT || 587),
-  secure: false,
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export const sendContactMail = async ({
   name,
@@ -20,10 +8,10 @@ export const sendContactMail = async ({
   message,
 }) => {
   try {
-    console.log("Sending email...");
+    console.log("Sending email via Resend...");
 
-    const info = await transporter.sendMail({
-      from: process.env.SMTP_USER,
+    const data = await resend.emails.send({
+      from: "Portfolio <onboarding@resend.dev>",
       to: process.env.CONTACT_RECEIVER,
       subject: `New Contact Request from ${name}`,
       html: `
@@ -35,11 +23,13 @@ export const sendContactMail = async ({
 
           <p><strong>Message:</strong></p>
 
-          <div style="
-            padding: 12px;
-            background: #f4f4f4;
-            border-radius: 8px;
-          ">
+          <div
+            style="
+              padding: 12px;
+              background: #f4f4f4;
+              border-radius: 8px;
+            "
+          >
             ${message}
           </div>
         </div>
@@ -47,9 +37,9 @@ export const sendContactMail = async ({
     });
 
     console.log("Email sent successfully");
-    console.log("Message ID:", info.messageId);
+    console.log(data);
 
-    return info;
+    return data;
   } catch (error) {
     console.error("MAIL ERROR:");
     console.error(error);
