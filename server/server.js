@@ -36,17 +36,20 @@ const allowedOrigins = [
 
 app.use(
   cors({
-    origin: (origin, callback) => {
-      // Allow Postman, server-to-server, curl, etc.
-      if (!origin) return callback(null, true);
+    origin(origin, callback) {
+      // Allow requests with no origin
+      // (Postman, curl, server-to-server)
+      if (!origin) {
+        return callback(null, true);
+      }
 
       if (allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
 
-      return callback(
-        new Error(`CORS blocked for origin: ${origin}`)
-      );
+      console.warn(`🚫 CORS blocked: ${origin}`);
+
+      return callback(null, false);
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
@@ -57,9 +60,6 @@ app.use(
     ],
   })
 );
-
-// Handle preflight requests
-app.options("*", cors());
 
 // ─────────────────────────────────────────────
 // Body Parsers
@@ -112,12 +112,11 @@ app.use((req, res) => {
 app.use((err, req, res, next) => {
   console.error("========== ERROR ==========");
   console.error(err);
-  console.error(err.stack);
   console.error("===========================");
 
   res.status(err.status || 500).json({
     success: false,
-    message: err.message,
+    message: err.message || "Internal Server Error",
   });
 });
 
@@ -143,9 +142,9 @@ const startServer = async () => {
           process.env.NODE_ENV || "development"
         }`
       );
-      console.log(`🗄️ MongoDB Connected`);
-      console.log(`🤖 AI Agent Initialized`);
-      console.log(`📚 RAG Knowledge Loaded`);
+      console.log("🗄️ MongoDB Connected");
+      console.log("🤖 AI Agent Initialized");
+      console.log("📚 RAG Knowledge Loaded");
       console.log("=================================");
     });
   } catch (error) {
