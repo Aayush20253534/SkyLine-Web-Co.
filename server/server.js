@@ -26,14 +26,40 @@ const app = express();
 
 app.use(helmet());
 
+const allowedOrigins = [
+  "https://skyline-web-co.com",
+  "https://www.skyline-web-co.com",
+  "https://skyline-web-co.vercel.app",
+  "http://localhost:5173",
+  "http://localhost:3000",
+];
+
 app.use(
   cors({
-    origin: env?.isProd
-      ? [process.env.CLIENT_URL]
-      : true,
+    origin: (origin, callback) => {
+      // Allow Postman, server-to-server, curl, etc.
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(
+        new Error(`CORS blocked for origin: ${origin}`)
+      );
+    },
     credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "X-Requested-With",
+    ],
   })
 );
+
+// Handle preflight requests
+app.options("*", cors());
 
 // ─────────────────────────────────────────────
 // Body Parsers
@@ -65,10 +91,7 @@ app.get("/health", (req, res) => {
 // API Routes
 // ─────────────────────────────────────────────
 
-// Existing Contact Form
 app.use("/api/contact", contactRoutes);
-
-// AI Chat Agent
 app.use("/api/chat", chatRoutes);
 
 // ─────────────────────────────────────────────
@@ -97,16 +120,14 @@ app.use((err, req, res, next) => {
     message: err.message,
   });
 });
+
 // ─────────────────────────────────────────────
 // Server Startup
 // ─────────────────────────────────────────────
 
 const startServer = async () => {
   try {
-    // Connect MongoDB
     await connectDB();
-
-    // Initialize AI Knowledge Base
     await initRAG();
 
     const PORT =
@@ -117,7 +138,11 @@ const startServer = async () => {
     app.listen(PORT, () => {
       console.log("=================================");
       console.log(`🚀 Server running on port ${PORT}`);
-      console.log(`🌍 Environment: ${process.env.NODE_ENV || "development"}`);
+      console.log(
+        `🌍 Environment: ${
+          process.env.NODE_ENV || "development"
+        }`
+      );
       console.log(`🗄️ MongoDB Connected`);
       console.log(`🤖 AI Agent Initialized`);
       console.log(`📚 RAG Knowledge Loaded`);
