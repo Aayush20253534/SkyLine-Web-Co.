@@ -1,172 +1,216 @@
 // server/ai/tools.js
-// Declares every tool the agent can use as OpenAI function-calling schemas.
-// The LLM reads these descriptions to decide when and how to call each tool.
-// Tool EXECUTION lives in toolExecutor.js — this file is pure schema.
 
 export const TOOL_DEFINITIONS = [
-  {
-  type: "function",
-  function: {
-    name: "createMeeting",
-    description:
-      "Book a consultation meeting after the user has confirmed a time slot. Saves the meeting and sends a confirmation email.",
-    parameters: {
-      type: "object",
-      properties: {
-        name: {
-          type: "string",
-        },
-        email: {
-          type: "string",
-          description: "User email address",
-        },
-       datetime: {
-  type: "string",
-  description:
-    "Meeting date and time. Examples: '2026-06-05T14:00:00+05:45', 'June 5 2026 2pm', 'tomorrow at 4pm'.",
-},
-        timezone: {
-          type: "string",
-          description: "User timezone",
-        },
-        topic: {
-          type: "string",
-          description: "Discussion topic",
-        },
-      },
-
-      required: ["email", "datetime"], // <-- UPDATE THIS
-    },
-  },
-},
   {
     type: "function",
     function: {
       name: "saveLead",
       description:
-        "Save a qualified lead to the database after collecting all required information. Only call this when you have: name, email, projectType, budget, and timeline. Do NOT call prematurely.",
+        "Save a qualified lead to the database after collecting all required information.",
       parameters: {
         type: "object",
         properties: {
-          name: { type: "string", description: "Full name of the lead." },
+          name: {
+            type: "string",
+            description: "Lead full name",
+          },
+
           email: {
             type: "string",
-            description: "Email address of the lead.",
+            description: "Lead email",
           },
+
           projectType: {
             type: "string",
-            description: "Type of project they need (e.g. MERN app, landing page).",
+            description: "Project type",
           },
+
           budget: {
             type: "string",
-            description: "Their stated budget or budget range.",
+            description: "Budget range",
           },
+
           timeline: {
             type: "string",
-            description: "Their desired project timeline or deadline.",
+            description: "Expected timeline",
           },
+
           requirements: {
             type: "string",
-            description: "Additional project requirements or notes.",
+            description: "Additional requirements",
           },
         },
+
         required: ["email", "projectType"],
       },
     },
   },
+
   {
     type: "function",
     function: {
       name: "sendEmail",
       description:
-        "Send an email to the user. Use for: sending proposals, consultation confirmations, follow-up emails, or sharing resources.",
+        "Send an email to a user.",
       parameters: {
         type: "object",
+
         properties: {
-          to: { type: "string", description: "Recipient email address." },
-          subject: { type: "string", description: "Email subject line." },
+          to: {
+            type: "string",
+          },
+
+          subject: {
+            type: "string",
+          },
+
           body: {
             type: "string",
-            description:
-              "Full email body in plain text or simple HTML. Be professional and helpful.",
           },
+
           type: {
             type: "string",
-            enum: ["proposal", "confirmation", "followup", "general"],
-            description: "Category of the email being sent.",
+            enum: [
+              "proposal",
+              "confirmation",
+              "followup",
+              "general",
+            ],
           },
         },
-        required: ["to", "subject", "body"],
+
+        required: [
+          "to",
+          "subject",
+          "body",
+        ],
       },
     },
   },
+
   {
     type: "function",
     function: {
       name: "generateProposal",
       description:
-        "Generate a professional project proposal based on the user's requirements. Returns proposal content that should then be emailed to the user.",
+        "Generate a professional proposal.",
       parameters: {
         type: "object",
+
         properties: {
-          clientName: { type: "string" },
-          email: { type: "string" },
-          projectType: { type: "string" },
-          requirements: { type: "string" },
-          budget: { type: "string" },
-          timeline: { type: "string" },
+          clientName: {
+            type: "string",
+          },
+
+          email: {
+            type: "string",
+          },
+
+          projectType: {
+            type: "string",
+          },
+
+          requirements: {
+            type: "string",
+          },
+
+          budget: {
+            type: "string",
+          },
+
+          timeline: {
+            type: "string",
+          },
         },
-        required: ["projectType", "requirements"],
+
+        required: [
+          "projectType",
+          "requirements",
+        ],
       },
     },
   },
+
   {
     type: "function",
     function: {
       name: "getAvailability",
+
       description:
-        "Get Aayush's available consultation slots. Call this when the user asks to book a meeting, schedule a call, or check availability.",
+        "Get consultation availability and booking URL.",
+
       parameters: {
         type: "object",
+
         properties: {},
+
         required: [],
       },
     },
   },
+
   {
     type: "function",
     function: {
       name: "createMeeting",
+
       description:
-        "Book a consultation meeting after the user has confirmed a time slot. Saves the meeting and sends a confirmation email.",
+        "Create and schedule a consultation meeting ONLY after the user explicitly confirms they want the meeting booked. This saves the meeting, sends confirmation emails and returns booking information.",
+
       parameters: {
         type: "object",
+
         properties: {
-          name: { type: "string" },
-          email: { type: "string", description: "User's email address." },
+          name: {
+            type: "string",
+            description:
+              "User full name",
+          },
+
+          email: {
+            type: "string",
+            description:
+              "User email address",
+          },
+
           datetime: {
             type: "string",
             description:
-              "Requested meeting datetime as ISO 8601 string or human-readable string.",
+              "Meeting date/time. Examples: 'tomorrow at 4pm', 'June 10 2026 2pm', '2026-06-10T14:00:00+05:45'",
           },
-          timezone: { type: "string", description: "User's timezone." },
+
+          timezone: {
+            type: "string",
+            description:
+              "Timezone such as Asia/Kathmandu or UTC",
+          },
+
           topic: {
             type: "string",
-            description: "Brief description of what they want to discuss.",
+            description:
+              "Meeting topic",
           },
         },
-        required: ["email"],
+
+        required: [
+          "email",
+          "datetime",
+        ],
       },
     },
   },
 ];
 
-// Fast lookup by name for the executor
 export const TOOL_MAP = Object.fromEntries(
-  TOOL_DEFINITIONS.map((t) => [t.function.name, t])
+  TOOL_DEFINITIONS.map((tool) => [
+    tool.function.name,
+    tool,
+  ])
 );
 
-// Names only — useful for allowlist checks
-export const ALLOWED_TOOL_NAMES = new Set(
-  TOOL_DEFINITIONS.map((t) => t.function.name)
-);
+export const ALLOWED_TOOL_NAMES =
+  new Set(
+    TOOL_DEFINITIONS.map(
+      (tool) => tool.function.name
+    )
+  );

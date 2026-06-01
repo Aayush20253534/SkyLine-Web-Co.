@@ -1,14 +1,16 @@
-// context/ChatbotContext.jsx (FIXED + STABLE VERSION)
-
-import { createContext, useContext, useState, useCallback, useRef } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useRef,
+  useEffect,
+} from "react";
 
 const ChatbotContext = createContext();
 
-const API_URL =
-  import.meta.env.VITE_API_URL_1 ||
-  "http://localhost:5000";
+const API_URL = import.meta.env.VITE_API_URL_1 || "http://localhost:5000";
 
-// session stays stable per page load
 function createSessionId() {
   return crypto.randomUUID();
 }
@@ -18,31 +20,36 @@ export const ChatbotProvider = ({ children }) => {
   const [messages, setMessages] = useState([]);
   const [isTyping, setIsTyping] = useState(false);
 
-  // stable session (does NOT trigger re-renders)
-  const sessionIdRef = useRef(createSessionId());
+  // ✅ IMPORTANT: booking mode state
+  const [isBookingMode, setIsBookingMode] = useState(false);
 
-  // initialize welcome message once
+  const sessionIdRef = useRef(createSessionId());
   const initializedRef = useRef(false);
 
-  if (!initializedRef.current) {
+  // Welcome message
+  useEffect(() => {
+    if (initializedRef.current) return;
     initializedRef.current = true;
 
     setMessages([
       {
         id: crypto.randomUUID(),
         sender: "bot",
+        type: "info",
         text:
-          "Hi 👋 I'm Skyline Web Co.'s AI assistant. I can help you understand his work, scope projects, or book a consultation.",
+          "Hi 👋 I'm Skyline Web Co.'s AI assistant. I can help you explore services or book a consultation.",
       },
     ]);
-  }
+  }, []);
 
   const openChat = () => setIsOpen(true);
   const closeChat = () => setIsOpen(false);
 
+  // -------------------------
+  // NORMAL CHAT
+  // -------------------------
   const sendMessage = useCallback(async (text) => {
     const cleanText = text?.trim();
-
     if (!cleanText) return;
 
     const userMsg = {
@@ -67,21 +74,9 @@ export const ChatbotProvider = ({ children }) => {
         }),
       });
 
-      if (!res.ok) {
-        let errMsg = "Request failed";
-        try {
-          const err = await res.json();
-          errMsg = err?.error || errMsg;
-        } catch {}
-        throw new Error(errMsg);
-      }
+      if (!res.ok) throw new Error("Request failed");
 
-      let data;
-      try {
-        data = await res.json();
-      } catch {
-        throw new Error("Invalid JSON from server");
-      }
+      const data = await res.json();
 
       setMessages((prev) => [
         ...prev,
@@ -91,21 +86,49 @@ export const ChatbotProvider = ({ children }) => {
           text: data?.reply || "No response received.",
         },
       ]);
-    } catch (err) {
-      console.error("[ChatbotContext] API error:", err.message);
 
+      // ✅ exit booking mode after normal response
+      setIsBookingMode(false);
+    } catch (err) {
       setMessages((prev) => [
         ...prev,
         {
           id: crypto.randomUUID(),
           sender: "bot",
           text:
-            "Sorry, I'm having trouble connecting right now. Please try again in a moment.",
+            "Sorry, I'm having trouble connecting right now. Please try again later.",
         },
       ]);
     } finally {
       setIsTyping(false);
     }
+  }, []);
+
+  // -------------------------
+  // BOOKING FLOW
+  // -------------------------
+  const startBookingFlow = useCallback(() => {
+    setIsBookingMode(true);
+
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: crypto.randomUUID(),
+        sender: "bot",
+        type: "schedule",
+        text: `📅 Schedule a Meeting
+
+Book a 1:1 session with us.
+
+✔ Select date & time  
+✔ Enter your email  
+✔ Get instant Jitsi meeting link`,
+      },
+    ]);
+  }, []);
+
+  const exitBookingFlow = useCallback(() => {
+    setIsBookingMode(false);
   }, []);
 
   return (
@@ -115,9 +138,16 @@ export const ChatbotProvider = ({ children }) => {
         messages,
         isTyping,
         sessionId: sessionIdRef.current,
+
         openChat,
         closeChat,
+
         sendMessage,
+
+        // booking
+        isBookingMode,
+        startBookingFlow,
+        exitBookingFlow,
       }}
     >
       {children}
@@ -125,5 +155,4 @@ export const ChatbotProvider = ({ children }) => {
   );
 };
 
-export const useChatbotContext = () =>
-  useContext(ChatbotContext);
+export const useChatbotContext = () => useContext(ChatbotContext);

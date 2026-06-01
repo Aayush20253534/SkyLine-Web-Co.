@@ -4,11 +4,11 @@ const QUICK_PROMPTS = [
   "What can you do?",
   "Tell me about Skyline Web Co.",
   "View projects",
-  "Get in touch",
+  "Schedule a Meeting",
 ];
 
 const QuickPrompts = () => {
-  const { sendMessage } = useChatbot();
+  const { sendMessage, startBookingFlow } = useChatbot();
 
   return (
     <div className="quick-prompts">
@@ -16,7 +16,13 @@ const QuickPrompts = () => {
         <button
           key={prompt}
           className="quick-prompt-btn"
-          onClick={() => sendMessage(prompt)}
+          onClick={() => {
+            if (prompt === "Schedule a Meeting") {
+              startBookingFlow();
+            } else {
+              sendMessage(prompt);
+            }
+          }}
         >
           {prompt}
         </button>

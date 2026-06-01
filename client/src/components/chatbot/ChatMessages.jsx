@@ -5,14 +5,15 @@ import TypingIndicator from "./TypingIndicator";
 import QuickPrompts from "./QuickPrompts";
 
 const ChatMessages = () => {
-  const { messages, isTyping } = useChatbot();
+  const { messages, isTyping, isBookingMode } = useChatbot();
   const bottomRef = useRef(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
 
-  const showQuickPrompts = messages.length === 1 && messages[0].sender === "bot";
+  // ✅ Stable: only hidden during booking
+  const showQuickPrompts = !isBookingMode;
 
   return (
     <div className="chat-messages">

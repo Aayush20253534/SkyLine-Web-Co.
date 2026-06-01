@@ -148,17 +148,27 @@ export async function runAgent({
     content: tr.content,
   });
 
-  // stop after successful meeting creation
-  if (
-    tr.toolName === "createMeeting" &&
-    !tr.content.includes('"error"')
-  ) {
-    reply =
-      "Your meeting has been scheduled successfully. A confirmation email has been sent.";
+  // Handle createMeeting result — pass through service message directly
+  if (tr.toolName === "createMeeting") {
+    let parsed = {};
+    try { parsed = JSON.parse(tr.content); } catch {}
+
+    if (parsed.success) {
+      // Meeting created or already exists — use the service's message
+      reply = parsed.message || "Your meeting has been scheduled successfully. A confirmation email has been sent.";
+    } else if (parsed.conflict === "email_day_conflict") {
+      // User already has a meeting that day
+      reply = parsed.message || "You already have a meeting scheduled on this day.";
+    } else if (parsed.conflict === "slot_taken") {
+      // Slot taken by someone else
+      reply = parsed.message || "This time slot is already booked. Please choose another time.";
+    } else {
+      // Other failure (invalid input etc.)
+      reply = parsed.message || "Sorry, I couldn't schedule the meeting. Please try again.";
+    }
 
     appendAssistantMessage(session, reply);
     await saveSession(session);
-
     return { reply, sessionId };
   }
 }
