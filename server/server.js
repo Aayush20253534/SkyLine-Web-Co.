@@ -37,18 +37,13 @@ const allowedOrigins = [
 app.use(
   cors({
     origin(origin, callback) {
-      // Allow requests with no origin
-      // (Postman, curl, server-to-server)
-      if (!origin) {
-        return callback(null, true);
-      }
+      if (!origin) return callback(null, true);
 
       if (allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
 
       console.warn(`🚫 CORS blocked: ${origin}`);
-
       return callback(null, false);
     },
     credentials: true,
@@ -57,6 +52,7 @@ app.use(
       "Content-Type",
       "Authorization",
       "X-Requested-With",
+      "X-Session-Id",
     ],
   })
 );
