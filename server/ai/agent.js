@@ -133,21 +133,35 @@ export async function runAgent({
       })
     );
 
-    for (const tr of toolResults) {
-      appendToolMessage(
-        session,
-        tr.toolCallId,
-        tr.toolName,
-        tr.content
-      );
+   for (const tr of toolResults) {
+  appendToolMessage(
+    session,
+    tr.toolCallId,
+    tr.toolName,
+    tr.content
+  );
 
-      loopMessages.push({
-        role: "tool",
-        tool_call_id: tr.toolCallId,
-        name: tr.toolName,
-        content: tr.content,
-      });
-    }
+  loopMessages.push({
+    role: "tool",
+    tool_call_id: tr.toolCallId,
+    name: tr.toolName,
+    content: tr.content,
+  });
+
+  // stop after successful meeting creation
+  if (
+    tr.toolName === "createMeeting" &&
+    !tr.content.includes('"error"')
+  ) {
+    reply =
+      "Your meeting has been scheduled successfully. A confirmation email has been sent.";
+
+    appendAssistantMessage(session, reply);
+    await saveSession(session);
+
+    return { reply, sessionId };
+  }
+}
   }
 
   if (!reply) {

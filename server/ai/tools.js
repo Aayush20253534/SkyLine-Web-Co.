@@ -5,24 +5,40 @@
 
 export const TOOL_DEFINITIONS = [
   {
-    type: "function",
-    function: {
-      name: "searchPortfolio",
-      description:
-        "Search the portfolio knowledge base for information about Aayush's skills, projects, services, pricing, experience, and background. Call this before answering any factual question about the portfolio to avoid hallucination.",
-      parameters: {
-        type: "object",
-        properties: {
-          query: {
-            type: "string",
-            description:
-              "The natural language query to search the knowledge base with.",
-          },
+  type: "function",
+  function: {
+    name: "createMeeting",
+    description:
+      "Book a consultation meeting after the user has confirmed a time slot. Saves the meeting and sends a confirmation email.",
+    parameters: {
+      type: "object",
+      properties: {
+        name: {
+          type: "string",
         },
-        required: ["query"],
+        email: {
+          type: "string",
+          description: "User email address",
+        },
+       datetime: {
+  type: "string",
+  description:
+    "Meeting date and time. Examples: '2026-06-05T14:00:00+05:45', 'June 5 2026 2pm', 'tomorrow at 4pm'.",
+},
+        timezone: {
+          type: "string",
+          description: "User timezone",
+        },
+        topic: {
+          type: "string",
+          description: "Discussion topic",
+        },
       },
+
+      required: ["email", "datetime"], // <-- UPDATE THIS
     },
   },
+},
   {
     type: "function",
     function: {

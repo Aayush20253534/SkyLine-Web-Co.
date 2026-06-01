@@ -41,7 +41,7 @@ export const chatController = {
     });
 
     if (!session) {
-      return res.status(404).json({ success: false, error: "Session not found." });
+      return res.statusQ(404).json({ success: false, error: "Session not found." });
     }
 
     return res.status(200).json({ success: true, session });

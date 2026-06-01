@@ -74,12 +74,14 @@ export async function chatCompletion({
      * GROQ PRIMARY PATH
      * =========================
      */
-    const response = await groq.chat.completions.create({
-      model: "llama-3.1-8b-instant",
-      messages: groqMessages,
-      temperature,
-      max_tokens: maxTokens,
-    });
+   const response = await groq.chat.completions.create({
+  model: "llama-3.3-70b-versatile",
+  messages: groqMessages,
+  tools,
+  tool_choice: "auto",
+  temperature,
+  max_tokens: maxTokens,
+});
 
     return {
       provider: "groq",
@@ -175,6 +177,25 @@ export function extractContent(wrapper) {
 export function extractToolCalls(wrapper) {
   const response = wrapper?.response;
 
+  // GROQ
+  if (wrapper.provider === "groq") {
+    const toolCalls =
+      response?.choices?.[0]?.message?.tool_calls;
+
+    if (!toolCalls?.length) {
+      return null;
+    }
+
+    return toolCalls.map((call) => ({
+      id: call.id,
+      function: {
+        name: call.function.name,
+        arguments: call.function.arguments,
+      },
+    }));
+  }
+
+  // GEMINI FALLBACK
   const parts =
     response?.response?.candidates?.[0]?.content?.parts ||
     [];
@@ -183,7 +204,9 @@ export function extractToolCalls(wrapper) {
     .map((p) => p.functionCall)
     .filter(Boolean);
 
-  if (!functionCalls.length) return null;
+  if (!functionCalls.length) {
+    return null;
+  }
 
   return functionCalls.map((call, i) => ({
     id: `call_${i}_${call.name}`,
@@ -195,7 +218,9 @@ export function extractToolCalls(wrapper) {
 }
 
 export function wantsToolCall(wrapper) {
-  return Boolean(extractToolCalls(wrapper));
+  const toolCalls = extractToolCalls(wrapper);
+
+  return Array.isArray(toolCalls) && toolCalls.length > 0;
 }
 
 /**
