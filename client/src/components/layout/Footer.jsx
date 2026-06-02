@@ -80,18 +80,23 @@ const Footer = () => {
 
             {/* Socials */}
             <div className="mt-8 flex gap-4">
-              <a href="https://github.com/Aayush20253534" target="_blank" rel="noopener noreferrer" className={socialClass}>
+              {/* <a href="https://github.com/Aayush20253534" target="_blank" rel="noopener noreferrer" className={socialClass}>
                 <FaGithub size={20} />
-              </a>
+              </a> */}
               <a href="#" target="_blank" rel="noopener noreferrer" className={socialClass}>
                 <FaLinkedin size={20} />
               </a>
               <a href="#" target="_blank" rel="noopener noreferrer" className={socialClass}>
                 <FaInstagram size={20} />
               </a>
-              <a href="mailto:your@email.com" className={socialClass}>
-                <Mail size={20} />
-              </a>
+  <a
+  href="https://mail.google.com/mail/?view=cm&fs=1&to=skylinewebco08@gmail.com"
+  target="_blank"
+  rel="noopener noreferrer"
+  className={socialClass}
+>
+  <Mail size={20} />
+</a>
             </div>
           </div>
 
