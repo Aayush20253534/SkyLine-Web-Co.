@@ -126,7 +126,7 @@ const Footer = () => {
               </li>
               <li className="flex items-center gap-3">
                 <Phone size={16} className={isDark ? "text-yellow-500 shrink-0" : "text-sky-500 shrink-0"} />
-                <span>+91 89360 91025</span>
+                <span>+91 98601 18523</span>
               </li>
               <li className="flex items-center gap-3">
                 <MapPin size={16} className={isDark ? "text-yellow-500 shrink-0" : "text-sky-500 shrink-0"} />
@@ -157,7 +157,7 @@ const Footer = () => {
           </div>
 
           <a
-            href="https://wa.me/918936091025?text=Hi!%20I%20viewed%20your%20portfolio%20and%20would%20like%20to%20discuss%20a%20project."
+            href="https://wa.me/919860118523?text=Hi!%20I%20viewed%20your%20portfolio%20and%20would%20like%20to%20discuss%20a%20project."
             target="_blank"
             rel="noopener noreferrer"
             className={`inline-flex items-center gap-2 px-7 py-4 rounded-xl font-semibold hover:scale-105 transition ${

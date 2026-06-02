@@ -388,8 +388,8 @@ const handleSubmit = async (e) => {
               <div className="mt-6 space-y-4">
                 {[
                   { icon: Mail, label: "Secure Inbound Email", val: "skylinewebco08@gmail.com", href: "mailto:contact@skylinewebco.com" },
-                  { icon: Phone, label: "Direct Operations Desk", val: "+977-XXXXXXXXX", href: "tel:+977XXXXXXXXX" },
-                  { icon: MessageCircle, label: "Encrypted WhatsApp Node", val: "Instant Support Active", href: "https://wa.me/+918936091025" },
+                  { icon: Phone, label: "Direct Operations Desk", val: "+91-98601 18523", href: "tel:+91-98601 18523" },
+                  { icon: MessageCircle, label: "Encrypted WhatsApp Node", val: "Instant Support Active", href: "https://wa.me/+919860118523" },
                 ].map((item, i) => (
                   <a
                     key={i}

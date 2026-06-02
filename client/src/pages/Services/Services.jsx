@@ -2,6 +2,8 @@ import Navbar from "../../components/layout/Navbar";
 import { useTheme } from "../../context/ThemeContext";
 import { motion } from "framer-motion";
 import { ArrowRight, Globe, Bot, Palette, CheckCircle2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+
 
 const services = [
   {
@@ -54,6 +56,7 @@ const services = [
 const Services = () => {
   const { theme } = useTheme();
   const isDark = theme === "dark";
+  const navigate = useNavigate();
 
   return (
     <div className={`min-h-screen relative overflow-hidden transition-colors duration-300 ${
@@ -124,15 +127,17 @@ const Services = () => {
               </motion.button>
 
               <motion.button
-                whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-                className={`px-8 py-4 rounded-xl border font-medium transition ${
-                  isDark
-                    ? "border-neutral-800 hover:bg-neutral-900/50 text-white"
-                    : "border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-sky-200"
-                }`}
-              >
-                View Portfolio
-              </motion.button>
+  onClick={() => navigate("/portfolio")}
+  whileHover={{ scale: 1.02 }}
+  whileTap={{ scale: 0.98 }}
+  className={`px-8 py-4 rounded-xl border font-medium transition ${
+    isDark
+      ? "border-neutral-800 hover:bg-neutral-900/50 text-white"
+      : "border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-sky-200"
+  }`}
+>
+  View Portfolio
+</motion.button>
             </div>
           </motion.div>
         </section>

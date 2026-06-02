@@ -1,10 +1,13 @@
 import { ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { useTheme } from "../../context/ThemeContext";
+import { useNavigate } from "react-router-dom";
 
 const Hero = () => {
   const { theme } = useTheme();
   const isDark = theme === "dark";
+  const navigate = useNavigate();
+
 
   return (
     <section
@@ -77,15 +80,16 @@ const Hero = () => {
                 <ArrowRight size={18} />
               </button>
 
-              <button
-                className={`px-7 py-3 rounded-xl hover:scale-105 transition font-medium ${
-                  isDark
-                    ? "border border-white/10 text-white hover:bg-white/5"
-                    : "border border-slate-300 text-slate-700 hover:bg-slate-50"
-                }`}
-              >
-                View Portfolio
-              </button>
+          <button
+  onClick={() => navigate("/portfolio")}
+  className={`px-7 py-3 rounded-xl hover:scale-105 transition font-medium ${
+    isDark
+      ? "border border-white/10 text-white hover:bg-white/5"
+      : "border border-slate-300 text-slate-700 hover:bg-slate-50"
+  }`}
+>
+  View Portfolio
+</button>
             </motion.div>
 
             {/* Stats */}

@@ -1,9 +1,12 @@
 import { ArrowRight, MessageSquareText } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
+import { useNavigate } from "react-router-dom";
+
 
 const ContactCTA = () => {
   const { theme } = useTheme();
   const isDark = theme === "dark";
+  const navigate = useNavigate();
 
   return (
     <section
@@ -54,21 +57,24 @@ const ContactCTA = () => {
         <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
 
           {/* Primary */}
-          <button
-            onClick={() => document.getElementById("contact-section")?.scrollIntoView({ behavior: "smooth" })}
-            className={`w-full sm:w-auto px-8 py-4 rounded-xl font-medium active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2 group shadow-lg ${
-              isDark
-                ? "bg-neutral-50 text-neutral-950 hover:bg-neutral-200 shadow-white/5"
-                : "bg-[#0f2545] text-white hover:bg-[#0c1a2e] shadow-slate-900/10"
-            }`}
-          >
-            Contact Us
-            <ArrowRight size={16} className="transform group-hover:translate-x-1 transition-transform duration-200" />
-          </button>
+      <button
+  onClick={() => navigate("/about")}
+  className={`w-full sm:w-auto px-8 py-4 rounded-xl font-medium active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2 group shadow-lg ${
+    isDark
+      ? "bg-neutral-50 text-neutral-950 hover:bg-neutral-200 shadow-white/5"
+      : "bg-[#0f2545] text-white hover:bg-[#0c1a2e] shadow-slate-900/10"
+  }`}
+>
+  About Us
+  <ArrowRight
+    size={16}
+    className="transform group-hover:translate-x-1 transition-transform duration-200"
+  />
+</button>
 
           {/* Secondary */}
           <a
-            href="https://wa.me/918936091025?text=Hi!%20I%20viewed%20your%20portfolio%20and%20would%20like%20to%20discuss%20a%20project."
+            href="https://wa.me/919860118523?text=Hi!%20I%20viewed%20your%20portfolio%20and%20would%20like%20to%20discuss%20a%20project."
             target="_blank"
             rel="noopener noreferrer"
             className={`w-full sm:w-auto px-8 py-4 rounded-xl border font-medium active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2 ${
