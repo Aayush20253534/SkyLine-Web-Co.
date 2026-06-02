@@ -3,16 +3,18 @@ import { useTheme } from "../../context/ThemeContext";
 
 import {
   SiReact,
+  SiNextdotjs,
   SiJavascript,
   SiTailwindcss,
   SiFramer,
   SiNodedotjs,
   SiExpress,
+  SiPython,
   SiMongodb,
   SiPostgresql,
-  SiFirebase,
   SiOpenai,
   SiLangchain,
+  SiFirebase
 } from "react-icons/si";
 
 const technologies = [
@@ -20,11 +22,15 @@ const technologies = [
   { name: "JavaScript", icon: SiJavascript, category: "Frontend" },
   { name: "Tailwind CSS", icon: SiTailwindcss, category: "Frontend" },
   { name: "Framer Motion", icon: SiFramer, category: "Frontend" },
+
   { name: "Node.js", icon: SiNodedotjs, category: "Backend" },
   { name: "Express", icon: SiExpress, category: "Backend" },
+
   { name: "MongoDB", icon: SiMongodb, category: "Database" },
   { name: "PostgreSQL", icon: SiPostgresql, category: "Database" },
+
   { name: "Firebase", icon: SiFirebase, category: "Cloud" },
+
   { name: "OpenAI", icon: SiOpenai, category: "AI" },
   { name: "LangChain", icon: SiLangchain, category: "AI" },
 ];

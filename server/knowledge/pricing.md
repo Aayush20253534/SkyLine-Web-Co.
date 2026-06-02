@@ -1,40 +1,137 @@
 # Pricing
 
-## General Pricing Philosophy
+## Our Pricing Philosophy
 
-Pricing depends on project scope, complexity, and timeline. I provide fixed-price quotes after an initial consultation to understand requirements fully.
+Every project is different, so pricing is based on scope, complexity, timeline, and business requirements.
 
-## Typical Ranges
+After an initial consultation, we'll provide a detailed proposal with a fixed project cost, timeline, and deliverables. No hidden fees, surprise invoices, or vague estimates.
 
-### Landing Page / Portfolio Site
-$300 – $800
-Timeline: 3–7 days
+## Typical Project Ranges
 
-### Full-Stack Web Application (MVP)
-$1,500 – $5,000
-Timeline: 3–8 weeks
-Includes: Auth, database, REST API, React frontend, deployment
+### Landing Pages & Business Websites
 
-### SaaS Product
-$5,000 – $15,000+
-Timeline: 2–4 months
-Includes: Multi-tenant architecture, subscriptions, admin dashboard, full deployment
+**Starting from $500**
 
-### API / Backend Only
-$800 – $3,000
-Timeline: 1–4 weeks
+Ideal for:
 
-### Technical Consultation (1 hour)
-$50 – $100
+* Startups
+* Personal brands
+* Small businesses
+* Marketing campaigns
 
-## What's Always Included
-- Clean, documented code
-- Git repository with full history
-- Deployment setup
-- 2 weeks post-launch bug fixes
-- Video walkthrough of delivered work
+**Typical Timeline:** 1-3 weeks
+
+---
+
+### Startup MVP Development
+
+**Starting from $1,500**
+
+Includes:
+
+* Responsive frontend
+* Backend development
+* Authentication system
+* Database integration
+* API development
+* Deployment
+
+**Typical Timeline:** 3-8 weeks
+
+---
+
+### Custom Web Applications
+
+**Starting from $2,500**
+
+Suitable for:
+
+* Internal business tools
+* Client portals
+* Dashboards
+* Marketplace platforms
+* Custom business software
+
+**Typical Timeline:** 4-12 weeks
+
+---
+
+### SaaS Platforms
+
+**Starting from $5,000**
+
+May include:
+
+* Multi-user systems
+* Subscription billing
+* Admin dashboards
+* Role-based access control
+* Analytics and reporting
+* Third-party integrations
+
+**Typical Timeline:** 2-4 months
+
+---
+
+### API & Backend Development
+
+**Starting from $800**
+
+Includes:
+
+* REST APIs
+* Database architecture
+* Authentication
+* Third-party integrations
+* Performance optimization
+
+**Typical Timeline:** 1-4 weeks
+
+## What's Included
+
+Every project includes:
+
+* Clean, maintainable code
+* Private Git repository
+* Deployment assistance
+* Responsive design implementation
+* Basic technical documentation
+* Performance optimization
+* Security best practices
+* Post-launch support
+
+## Post-Launch Support
+
+We don't disappear after deployment.
+
+All projects include:
+
+* Bug fixes for issues related to delivered functionality
+* Deployment support
+* Technical assistance during launch
+
+Ongoing maintenance and feature development are available through separate support plans.
 
 ## Payment Terms
-- 50% upfront, 50% on delivery for projects under $2,000
-- Milestone-based payments for larger projects
-- Payments via bank transfer, PayPal, or crypto (USDT)
+
+### Small Projects
+
+* 50% upfront
+* 50% upon completion
+
+### Larger Projects
+
+* Milestone-based payments
+* Progress-based delivery schedule
+* Regular project updates
+
+## Accepted Payment Methods
+
+* Bank Transfer
+* Wise
+* PayPal
+* USDT (Crypto)
+
+## Need a Custom Quote?
+
+If your project doesn't fit into the categories above, contact us with your requirements and we'll prepare a tailored proposal based on your goals and budget.

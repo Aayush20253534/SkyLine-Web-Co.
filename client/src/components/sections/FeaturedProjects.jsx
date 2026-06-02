@@ -1,6 +1,35 @@
 import { ExternalLink, Code2 } from "lucide-react";
-import { projects } from "../../data/projectsData";
 import { useTheme } from "../../context/ThemeContext";
+
+const projects = [
+  {
+    id: 1,
+    title: "RAG Based AI Summarizer",
+    description:
+      "An AI-powered document summarization platform using Retrieval-Augmented Generation. It helps users process documents, retrieve relevant context, and generate clear AI summaries.",
+    tags: ["React", "Node.js", "MongoDB", "LangChain", "Gemini API", "AI"],
+    link: "https://github.com/Aayush20253534/RAG_BASED_AI_SUMMARIZER_1",
+    github: "https://github.com/Aayush20253534/RAG_BASED_AI_SUMMARIZER_1",
+  },
+  {
+    id: 2,
+    title: "Drone Detection Model",
+    description:
+      "A computer vision project designed to detect drones using machine learning and image processing techniques, with a focus on AI-powered object detection.",
+    tags: ["Python", "Computer Vision", "Machine Learning", "AI"],
+    link: "https://github.com/Aayush20253534/DRONE_DETECTION_MODEL",
+    github: "https://github.com/Aayush20253534/DRONE_DETECTION_MODEL",
+  },
+  {
+    id: 3,
+    title: "Airgrid",
+    description:
+      "A technical project focused on infrastructure, connectivity, and scalable system concepts with an emphasis on reliability and efficient data handling.",
+    tags: ["Backend", "Infrastructure", "Networking", "Scalable Systems"],
+    link: "https://github.com/Aayush20253534/Airgrid",
+    github: "https://github.com/Aayush20253534/Airgrid",
+  },
+];
 
 const FeaturedProjects = () => {
   const { theme } = useTheme();
@@ -15,14 +44,17 @@ const FeaturedProjects = () => {
       }`}
     >
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
-
         {/* Header */}
         <div className="max-w-2xl">
-          <h2 className="text-3xl md:text-4xl font-bold">
-            Featured Projects
-          </h2>
-          <p className={`mt-4 text-sm md:text-base ${isDark ? "text-neutral-500" : "text-slate-500"}`}>
-            Selected case studies showcasing scalable systems, AI integrations, and modern UX.
+          <h2 className="text-3xl md:text-4xl font-bold">Selected Work</h2>
+
+          <p
+            className={`mt-4 text-sm md:text-base ${
+              isDark ? "text-neutral-500" : "text-slate-500"
+            }`}
+          >
+            Real-world projects spanning AI applications, machine learning
+            systems, scalable backends, and modern web development.
           </p>
         </div>
 
@@ -49,15 +81,19 @@ const FeaturedProjects = () => {
               </h3>
 
               {/* Description */}
-              <p className={`mt-3 text-sm leading-relaxed ${isDark ? "text-neutral-500" : "text-slate-500"}`}>
+              <p
+                className={`mt-3 text-sm leading-relaxed ${
+                  isDark ? "text-neutral-500" : "text-slate-500"
+                }`}
+              >
                 {project.description}
               </p>
 
               {/* Tags */}
               <div className="mt-4 flex flex-wrap gap-2">
-                {project.tags.map((tag, i) => (
+                {project.tags.map((tag) => (
                   <span
-                    key={i}
+                    key={tag}
                     className={`text-xs px-2 py-1 rounded-md ${
                       isDark
                         ? "bg-white/10 text-neutral-300"
@@ -77,14 +113,19 @@ const FeaturedProjects = () => {
               >
                 <a
                   href={project.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className={`flex items-center gap-1 transition hover:underline ${
                     isDark ? "hover:text-white" : "hover:text-sky-600"
                   }`}
                 >
                   Live <ExternalLink size={14} />
                 </a>
+
                 <a
                   href={project.github}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className={`flex items-center gap-1 transition hover:underline ${
                     isDark ? "hover:text-white" : "hover:text-sky-600"
                   }`}
@@ -95,7 +136,6 @@ const FeaturedProjects = () => {
             </div>
           ))}
         </div>
-
       </div>
     </section>
   );
