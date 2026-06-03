@@ -25,7 +25,7 @@ const portfolio = [
     tech: ["React", "Node.js", "Express", "MongoDB", "LangChain", "Gemini API"],
     github:
       "https://github.com/Aayush20253534/RAG_BASED_AI_SUMMARIZER_UPDATED_AND_ADVANCED",
-    live: "https://github.com/Aayush20253534/RAG_BASED_AI_SUMMARIZER_UPDATED_AND_ADVANCED",
+    live: "https://rag-based-ai-summarizer-updated-and.vercel.app",
   },
   {
     id: 2,
