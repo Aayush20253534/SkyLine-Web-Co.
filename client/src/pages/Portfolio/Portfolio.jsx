@@ -91,7 +91,7 @@ const portfolio = [
       "ElevateAI explores intelligent automation, AI-powered workflows, and predictive data processing. The platform is designed to help businesses automate repetitive processes and extract actionable insights from data.",
     tech: ["Python", "FastAPI", "React", "Machine Learning", "AI"],
     github: "https://github.com/Aayush20253534/ELEVATEAI",
-    live: "https://github.com/Aayush20253534/ELEVATEAI",
+    live: "https://elevateai-pi.vercel.app",
   },
 ];
 
