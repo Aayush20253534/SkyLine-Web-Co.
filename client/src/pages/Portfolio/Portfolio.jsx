@@ -63,7 +63,7 @@ const portfolio = [
       "RepoXray analyzes GitHub repositories and generates structural insights, file-level explanations, and architecture summaries. It is designed to reduce the time needed to understand unfamiliar codebases.",
     tech: ["React", "TypeScript", "Tailwind CSS", "Shadcn UI", "AI"],
     github: "https://github.com/Aayush20253534/RepoXray",
-    live: "https://github.com/Aayush20253534/RepoXray",
+    live: "https://repoxray.vercel.app",
   },
   {
     id: 5,
