@@ -78,7 +78,7 @@ const portfolio = [
     github:
       "https://github.com/Aayush20253534/Campus_management_system-Chanakya-",
     live:
-      "https://github.com/Aayush20253534/Campus_management_system-Chanakya-",
+      "https://campus-chanakya.vercel.app",
   },
   {
     id: 6,
