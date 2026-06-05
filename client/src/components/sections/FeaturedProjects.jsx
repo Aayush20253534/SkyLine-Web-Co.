@@ -3,7 +3,7 @@ import { useTheme } from "../../context/ThemeContext";
 
 import img1 from "../../assets/1.png";
 import img2 from "../../assets/2.png";
-import img5 from "../../assets/5.png";
+import img6 from "../../assets/6.png";
 
 const projects = [
   {
@@ -27,17 +27,26 @@ const projects = [
     link: "https://elevateai-pi.vercel.app",
     github: "https://github.com/Aayush20253534/ELEVATEAI",
   },
-  {
-    id: 3,
-    title: "RAG AI Summarizer",
-    description:
-      "AI-powered document summarization platform using Retrieval-Augmented Generation and vector-based context retrieval.",
-    tags: ["React", "Node.js", "MongoDB", "LangChain", "Gemini API", "AI"],
-    image: img5,
-    link: "https://rag-based-ai-summarizer-updated-and.vercel.app",
-    github:
-      "https://github.com/Aayush20253534/RAG_BASED_AI_SUMMARIZER_UPDATED_AND_ADVANCED",
-  },
+{
+  id: 3,
+  title: "TrackPad - Digital Learning Marketplace",
+  description:
+    "A full-stack EdTech platform where students can purchase digital products, access study materials, book counselling sessions, and manage purchases through a secure dashboard.",
+  tags: [
+    "React",
+    "Node.js",
+    "Express",
+    "PostgreSQL",
+    "Prisma",
+    "Razorpay",
+    "Authentication",
+    "Admin Dashboard",
+    "EdTech"
+  ],
+  image: img6,
+  link: "https://www.trackkpad.com",
+  github: "https://github.com/Aayush20253534/Habit-Hive",
+},
 ];
 
 const FeaturedProjects = () => {

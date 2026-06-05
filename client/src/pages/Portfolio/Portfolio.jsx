@@ -9,6 +9,7 @@ import img2 from "../../assets/2.png";
 import img3 from "../../assets/3.png";
 import img4 from "../../assets/4.png";
 import img5 from "../../assets/5.png";
+import img6 from "../../assets/6.png";
 
 const categories = ["All", "AI", "Infrastructure", "Education"];
 
@@ -28,17 +29,28 @@ const portfolio = [
     live: "https://rag-based-ai-summarizer-updated-and.vercel.app",
   },
   {
-    id: 2,
-    category: "AI",
-    title: "Drone Detection Model",
-    description:
-      "Computer vision system designed for drone detection using machine learning and image processing techniques.",
-    details:
-      "A machine learning project focused on detecting drones through computer vision models. The system is designed around object detection workflows, visual processing, and AI-powered aerial object recognition.",
-    tech: ["Python", "FastAPI", "OpenCV", "YOLO", "Computer Vision"],
-    github: "https://github.com/Aayush20253534/DRONE_DETECTION_MODEL",
-    live: "https://github.com/Aayush20253534/DRONE_DETECTION_MODEL",
-  },
+  id: 2,
+  category: "EdTech",
+  title: "TrackPad",
+  image: img6,
+  description:
+    "Digital product marketplace for students featuring study resources, productivity tools, counselling bookings, OTP authentication, and secure payments.",
+  details:
+    "TrackPad is a full-stack platform built to help students access premium study materials, digital products, and counselling services. The platform includes OTP-based authentication, Razorpay payment integration, automated purchase access management, admin dashboards, product management, file delivery, and responsive user experiences. Designed with scalability and simplicity in mind, it serves as a complete digital commerce solution for educational content.",
+  tech: [
+    "React",
+    "Node.js",
+    "Express",
+    "PostgreSQL",
+    "Prisma",
+    "Razorpay",
+    "JWT",
+    "Render",
+    "Vercel"
+  ],
+  github: "https://github.com/Aayush20253534/Habit-Hive",
+  live: "https://www.trackkpad.com",
+},
   {
     id: 3,
     category: "Infrastructure",
