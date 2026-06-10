@@ -74,33 +74,24 @@ const Navbar = () => {
       >
         <div
           className={`max-w-7xl mx-auto px-6 lg:px-8 flex items-center justify-between transition-all duration-300 ${
-            scrolled ? "h-16" : "h-20"
+            scrolled ? "h-20" : "h-24"
           }`}
         >
           {/* Logo */}
           <Link
             to="/"
-            className="leading-none hover:opacity-90 transition"
+            className="flex items-center hover:scale-[1.02] transition-transform duration-300"
           >
-            <div className="flex flex-col">
-              <span
-                className={`text-xl md:text-2xl font-bold tracking-tight ${
-                  isDark
-                    ? "text-white"
-                    : "bg-gradient-to-r from-slate-900 via-sky-700 to-sky-500 bg-clip-text text-transparent"
-                }`}
-              >
-                SkyLine
-              </span>
-
-              <span
-                className={`text-xs uppercase tracking-[0.3em] ${
-                  isDark ? "text-neutral-400" : "text-sky-700/70"
-                }`}
-              >
-                Web Co.
-              </span>
-            </div>
+            <img
+              src="/logo.png"
+              alt="SkyLine Web Co."
+              draggable={false}
+              className={`object-contain transition-all duration-300 ${
+                scrolled
+                  ? "h-14 md:h-16"
+                  : "h-20 md:h-24"
+              }`}
+            />
           </Link>
 
           {/* Desktop Nav */}
@@ -192,7 +183,7 @@ const Navbar = () => {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.25 }}
-              className={`fixed top-20 left-0 w-full z-50 md:hidden border-t backdrop-blur-xl ${
+              className={`fixed top-24 left-0 w-full z-50 md:hidden border-t backdrop-blur-xl ${
                 isDark
                   ? "bg-slate-950/95 border-white/10"
                   : "bg-white/95 border-sky-100"
