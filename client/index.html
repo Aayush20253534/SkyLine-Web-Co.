@@ -27,7 +27,7 @@
     <meta name="author" content="SkyLine Web Co." />
 
     <!-- =========================
-         OPEN GRAPH (SOCIAL)
+         OPEN GRAPH
     ========================== -->
     <meta property="og:title" content="SkyLine Web Co." />
     <meta
@@ -38,14 +38,38 @@
     <meta property="og:image" content="/logo.png" />
 
     <!-- =========================
-         FAVICON
+         TWITTER
     ========================== -->
-    <link rel="icon" type="image/png" href="/logo.png" />
-    <link rel="shortcut icon" href="/logo.png" />
-    <link rel="apple-touch-icon" href="/logo.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="SkyLine Web Co." />
+    <meta
+      name="twitter:description"
+      content="AI-powered web development & modern SaaS solutions."
+    />
+    <meta name="twitter:image" content="/logo.png" />
 
     <!-- =========================
-         PERFORMANCE: PRECONNECT
+         FAVICONS
+         (Uses logo.png everywhere)
+    ========================== -->
+    <link rel="icon" href="/logo.png" sizes="16x16" />
+    <link rel="icon" href="/logo.png" sizes="32x32" />
+    <link rel="icon" href="/logo.png" sizes="48x48" />
+    <link rel="icon" href="/logo.png" sizes="64x64" />
+    <link rel="icon" href="/logo.png" sizes="128x128" />
+    <link rel="icon" href="/logo.png" sizes="192x192" />
+    <link rel="icon" href="/logo.png" sizes="512x512" />
+
+    <link rel="shortcut icon" href="/logo.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/logo.png" />
+
+    <!-- =========================
+         PRELOAD LOGO
+    ========================== -->
+    <link rel="preload" as="image" href="/logo.png" />
+
+    <!-- =========================
+         PERFORMANCE
     ========================== -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -57,18 +81,11 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Space+Grotesk:wght@300..700&display=swap"
       rel="stylesheet"
     />
-
-    <!-- =========================
-         PRELOAD LOGO
-    ========================== -->
-    <link rel="preload" as="image" href="/logo.png" />
   </head>
 
   <body>
-    <!-- Root Mount -->
     <div id="root"></div>
 
-    <!-- App Entry -->
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
