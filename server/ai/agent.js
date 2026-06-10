@@ -22,13 +22,9 @@ import {
   saveSession,
 } from "./memory.js";
 
-const MAX_TOOL_ITERATIONS = 6;
+const MAX_TOOL_ITERATIONS = 3;
 
-export async function runAgent({
-  sessionId,
-  userMessage,
-  metadata = {},
-}) {
+export async function runAgent({ sessionId, userMessage, metadata = {} }) {
   const session = await loadSession(sessionId, metadata);
 
   const { intent, extracted } = await classifyIntent(userMessage, {
@@ -43,6 +39,7 @@ export async function runAgent({
   updateQualificationStage(session, intent);
 
   let ragContext = "";
+
   const needsRAG = [
     INTENTS.PORTFOLIO_QUESTION,
     INTENTS.PRICING_QUESTION,
@@ -62,8 +59,8 @@ export async function runAgent({
   });
 
   appendUserMessage(session, userMessage);
-  const messages = buildMessageHistory(session, systemPrompt);
 
+  const messages = buildMessageHistory(session, systemPrompt);
   const loopMessages = [...messages];
 
   let reply = "";
@@ -80,106 +77,155 @@ export async function runAgent({
       temperature: 0.4,
     });
 
-    const assistantMessage = {
-      role: "assistant",
-      content: extractContent(response),
-    };
+    const content = extractContent(response) || "";
 
     if (!wantsToolCall(response)) {
-      reply = extractContent(response);
+      reply = content || "Done.";
 
       appendAssistantMessage(session, reply, response?.usage);
-      break;
+      await saveSession(session);
+
+      return { reply, sessionId };
     }
 
     const toolCalls = extractToolCalls(response);
 
-    if (!toolCalls) break;
+    if (!toolCalls?.length) {
+      reply = content || "Done.";
 
-    loopMessages.push(assistantMessage);
+      appendAssistantMessage(session, reply);
+      await saveSession(session);
 
-    const toolResults = await Promise.all(
-      toolCalls.map(async (toolCall) => {
-        const toolName = toolCall.function.name;
-
-        let args = {};
-        try {
-          args = JSON.parse(toolCall.function.arguments);
-        } catch {}
-
-        const { success, result, error } =
-          await executeTool(toolName, args, {
-            sessionId,
-            session,
-          });
-
-        recordToolExecution(
-          session,
-          toolName,
-          args,
-          result,
-          success
-        );
-
-        const content = success
-          ? JSON.stringify(result)
-          : JSON.stringify({ error });
-
-        return {
-          toolCallId: toolCall.id,
-          toolName,
-          content,
-        };
-      })
-    );
-
-   for (const tr of toolResults) {
-  appendToolMessage(
-    session,
-    tr.toolCallId,
-    tr.toolName,
-    tr.content
-  );
-
-  loopMessages.push({
-    role: "tool",
-    tool_call_id: tr.toolCallId,
-    name: tr.toolName,
-    content: tr.content,
-  });
-
-  // Handle createMeeting result — pass through service message directly
-  if (tr.toolName === "createMeeting") {
-    let parsed = {};
-    try { parsed = JSON.parse(tr.content); } catch {}
-
-    if (parsed.success) {
-      // Meeting created or already exists — use the service's message
-      reply = parsed.message || "Your meeting has been scheduled successfully. A confirmation email has been sent.";
-    } else if (parsed.conflict === "email_day_conflict") {
-      // User already has a meeting that day
-      reply = parsed.message || "You already have a meeting scheduled on this day.";
-    } else if (parsed.conflict === "slot_taken") {
-      // Slot taken by someone else
-      reply = parsed.message || "This time slot is already booked. Please choose another time.";
-    } else {
-      // Other failure (invalid input etc.)
-      reply = parsed.message || "Sorry, I couldn't schedule the meeting. Please try again.";
+      return { reply, sessionId };
     }
 
-    appendAssistantMessage(session, reply);
-    await saveSession(session);
-    return { reply, sessionId };
-  }
-}
+    loopMessages.push({
+      role: "assistant",
+      content,
+      tool_calls: toolCalls.map((call) => ({
+        id: call.id,
+        type: "function",
+        function: {
+          name: call.function.name,
+          arguments: call.function.arguments || "{}",
+        },
+      })),
+    });
+
+    for (const toolCall of toolCalls) {
+      const toolName = toolCall.function.name;
+
+      let args = {};
+
+      try {
+        args = JSON.parse(toolCall.function.arguments || "{}");
+      } catch {
+        args = {};
+      }
+
+      const { success, result, error, skipped } = await executeTool(
+        toolName,
+        args,
+        {
+          sessionId,
+          session,
+        }
+      );
+
+      recordToolExecution(session, toolName, args, result, success);
+
+      const toolContent = success
+        ? JSON.stringify(result || {})
+        : JSON.stringify({ error: error || "Tool failed." });
+
+      appendToolMessage(session, toolCall.id, toolName, toolContent);
+
+      loopMessages.push({
+        role: "tool",
+        tool_call_id: toolCall.id,
+        name: toolName,
+        content: toolContent,
+      });
+
+      if (toolName === "sendEmail") {
+        reply = skipped
+          ? "That email was already sent, so I did not send a duplicate."
+          : "Email sent successfully.";
+
+        appendAssistantMessage(session, reply);
+        await saveSession(session);
+
+        return { reply, sessionId };
+      }
+
+      if (toolName === "saveLead") {
+        reply = "Your details have been saved successfully.";
+
+        appendAssistantMessage(session, reply);
+        await saveSession(session);
+
+        return { reply, sessionId };
+      }
+
+      if (toolName === "generateProposal") {
+        let parsed = {};
+
+        try {
+          parsed = JSON.parse(toolContent);
+        } catch {
+          parsed = {};
+        }
+
+        reply =
+          parsed.message ||
+          parsed.proposal ||
+          "Proposal generated successfully.";
+
+        appendAssistantMessage(session, reply);
+        await saveSession(session);
+
+        return { reply, sessionId };
+      }
+
+      if (toolName === "createMeeting") {
+        let parsed = {};
+
+        try {
+          parsed = JSON.parse(toolContent);
+        } catch {
+          parsed = {};
+        }
+
+        if (parsed.success) {
+          reply =
+            parsed.message ||
+            "Your meeting has been scheduled successfully.";
+        } else if (parsed.conflict === "email_day_conflict") {
+          reply =
+            parsed.message ||
+            "You already have a meeting scheduled on this day.";
+        } else if (parsed.conflict === "slot_taken") {
+          reply =
+            parsed.message ||
+            "This time slot is already booked. Please choose another time.";
+        } else {
+          reply =
+            parsed.message ||
+            "Sorry, I couldn't schedule the meeting. Please try again.";
+        }
+
+        appendAssistantMessage(session, reply);
+        await saveSession(session);
+
+        return { reply, sessionId };
+      }
+    }
   }
 
-  if (!reply) {
-    reply =
-      "I'm sorry, something broke while processing your request.";
-    appendAssistantMessage(session, reply);
-  }
+  reply =
+    "I completed the request, but stopped after too many tool attempts.";
 
+  appendAssistantMessage(session, reply);
   await saveSession(session);
 
   return { reply, sessionId };
@@ -193,22 +239,25 @@ function updateQualificationStage(session, intent) {
     session.qualificationStage === "none"
   ) {
     session.qualificationStage = "collecting_project";
+    session.markModified("qualificationStage");
     return;
   }
 
-  const d = session.extractedData;
+  const d = session.extractedData || {};
 
   if (session.qualificationStage !== "none") {
-    if (!d.projectType)
+    if (!d.projectType) {
       session.qualificationStage = "collecting_project";
-    else if (!d.budget)
+    } else if (!d.budget) {
       session.qualificationStage = "collecting_budget";
-    else if (!d.timeline)
+    } else if (!d.timeline) {
       session.qualificationStage = "collecting_timeline";
-    else if (!d.email)
+    } else if (!d.email) {
       session.qualificationStage = "collecting_email";
-    else session.qualificationStage = "qualified";
-  }
+    } else {
+      session.qualificationStage = "qualified";
+    }
 
-  session.markModified("qualificationStage");
+    session.markModified("qualificationStage");
+  }
 }
