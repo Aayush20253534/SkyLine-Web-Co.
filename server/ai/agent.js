@@ -10,6 +10,7 @@ import { TOOL_DEFINITIONS } from "./tools.js";
 import { executeTool } from "./toolExecutor.js";
 import { ragSearch } from "./rag.js";
 import { classifyIntent, INTENTS } from "./intentClassifier.js";
+import { leadService } from "../services/lead.service.js";
 
 import {
   loadSession,
@@ -38,6 +39,8 @@ export async function runAgent({ sessionId, userMessage, metadata = {} }) {
 
   updateQualificationStage(session, intent);
 
+  await saveLeadIfQualified(session);
+
   let ragContext = "";
 
   const needsRAG = [
@@ -63,6 +66,8 @@ export async function runAgent({ sessionId, userMessage, metadata = {} }) {
   const messages = buildMessageHistory(session, systemPrompt);
   const loopMessages = [...messages];
 
+  const allowedTools = getToolsForIntent(intent, userMessage);
+
   let reply = "";
   let iterations = 0;
 
@@ -71,8 +76,8 @@ export async function runAgent({ sessionId, userMessage, metadata = {} }) {
 
     const response = await chatCompletion({
       messages: loopMessages,
-      tools: TOOL_DEFINITIONS,
-      toolChoice: "auto",
+      tools: allowedTools,
+      toolChoice: allowedTools.length ? "auto" : "none",
       maxTokens: 1024,
       temperature: 0.4,
     });
@@ -158,15 +163,6 @@ export async function runAgent({ sessionId, userMessage, metadata = {} }) {
         return { reply, sessionId };
       }
 
-      if (toolName === "saveLead") {
-        reply = "Your details have been saved successfully.";
-
-        appendAssistantMessage(session, reply);
-        await saveSession(session);
-
-        return { reply, sessionId };
-      }
-
       if (toolName === "generateProposal") {
         let parsed = {};
 
@@ -222,8 +218,7 @@ export async function runAgent({ sessionId, userMessage, metadata = {} }) {
     }
   }
 
-  reply =
-    "I completed the request, but stopped after too many tool attempts.";
+  reply = "I completed the request, but stopped after too many tool attempts.";
 
   appendAssistantMessage(session, reply);
   await saveSession(session);
@@ -260,4 +255,77 @@ function updateQualificationStage(session, intent) {
 
     session.markModified("qualificationStage");
   }
+}
+
+function getToolsForIntent(intent, userMessage) {
+  const msg = userMessage.toLowerCase();
+
+  if (
+    intent === INTENTS.GREETING ||
+    intent === INTENTS.GENERAL_CHAT ||
+    intent === INTENTS.UNKNOWN ||
+    msg.includes("what can you do") ||
+    msg.includes("list everything") ||
+    msg.includes("show me the details") ||
+    msg.includes("tell me about")
+  ) {
+    return [];
+  }
+
+  if (intent === INTENTS.BOOK_MEETING) {
+    return TOOL_DEFINITIONS.filter((tool) =>
+      ["getAvailability", "createMeeting"].includes(tool.function.name)
+    );
+  }
+
+  if (intent === INTENTS.PROPOSAL_REQUEST) {
+    return TOOL_DEFINITIONS.filter((tool) =>
+      ["generateProposal"].includes(tool.function.name)
+    );
+  }
+
+  if (
+    msg.includes("send email") ||
+    msg.includes("send mail") ||
+    msg.includes("write a email to") ||
+    msg.includes("write an email to") ||
+    msg.includes("mail to")
+  ) {
+    return TOOL_DEFINITIONS.filter(
+      (tool) => tool.function.name === "sendEmail"
+    );
+  }
+
+  return [];
+}
+
+async function saveLeadIfQualified(session) {
+  if (session.leadSaved) return;
+
+  const d = session.extractedData || {};
+
+  const email = d.email?.trim()?.toLowerCase();
+  const projectType = d.projectType?.trim();
+
+  if (!email || !projectType) return;
+
+  if (
+    email === "example@example.com" ||
+    projectType.toLowerCase() === "example project"
+  ) {
+    return;
+  }
+
+  await leadService.saveLead({
+    sessionId: session.sessionId,
+    name: d.name,
+    email,
+    projectType,
+    budget: d.budget,
+    timeline: d.timeline,
+    requirements: d.requirements,
+  });
+
+  session.leadSaved = true;
+  session.markModified("leadSaved");
 }

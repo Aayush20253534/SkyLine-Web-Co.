@@ -1,44 +1,71 @@
-// server/services/lead.service.js
-// Handles lead persistence and notification.
-
 import { Lead } from "../models/Lead.js";
 import { emailService } from "./email.service.js";
 import { env } from "../config/env.js";
 
 export const leadService = {
-  /**
-   * Save a new lead or update an existing one for the session.
-   * Also notifies the owner by email.
-   */
   async saveLead(data) {
     const { sessionId, email, ...rest } = data;
 
-    if (!email) throw new Error("Email is required to save a lead.");
+    if (!sessionId) {
+      throw new Error("Session ID is required to save a lead.");
+    }
 
-    // Calculate a basic qualification score
-    const score = calcQualificationScore(data);
+    if (!email) {
+      throw new Error("Email is required to save a lead.");
+    }
+
+    const normalizedEmail = email.toLowerCase().trim();
+    const projectType = rest.projectType?.trim();
+
+    if (!/^\S+@\S+\.\S+$/.test(normalizedEmail)) {
+      throw new Error("Invalid email address.");
+    }
+
+    if (!projectType || projectType.length < 3) {
+      throw new Error("Project type is required to save a lead.");
+    }
+
+    if (
+      normalizedEmail === "example@example.com" ||
+      projectType.toLowerCase() === "example project"
+    ) {
+      throw new Error("Dummy lead rejected.");
+    }
+
+    const score = calcQualificationScore({
+      ...data,
+      email: normalizedEmail,
+      projectType,
+    });
 
     const lead = await Lead.findOneAndUpdate(
-      { sessionId, email: email.toLowerCase() },
+      {
+        sessionId,
+        email: normalizedEmail,
+      },
       {
         $set: {
           ...rest,
-          email: email.toLowerCase(),
+          email: normalizedEmail,
+          projectType,
           sessionId,
           qualified: score >= 50,
           qualificationScore: score,
         },
       },
-      { upsert: true, new: true, runValidators: true }
+      {
+        upsert: true,
+        returnDocument: "after",
+        runValidators: true,
+      }
     );
 
-    console.log(`[LeadService] Lead saved: ${email} (score: ${score})`);
+    console.log(`[LeadService] Lead saved: ${normalizedEmail} (score: ${score})`);
 
-    // Notify owner
     try {
       await emailService.send({
         to: env.ownerEmail,
-        subject: `🎯 New Lead: ${rest.projectType || "Unknown Project"} — ${email}`,
+        subject: `🎯 New Lead: ${projectType} — ${normalizedEmail}`,
         body: formatLeadEmail(lead),
         type: "general",
       });
@@ -46,7 +73,10 @@ export const leadService = {
       console.error("[LeadService] Owner notification failed:", err.message);
     }
 
-    return { success: true, leadId: lead._id.toString() };
+    return {
+      success: true,
+      leadId: lead._id.toString(),
+    };
   },
 
   async getLeadBySession(sessionId) {
@@ -56,12 +86,14 @@ export const leadService = {
 
 function calcQualificationScore(data) {
   let score = 0;
+
   if (data.email) score += 25;
   if (data.projectType) score += 20;
   if (data.budget) score += 25;
   if (data.timeline) score += 15;
   if (data.name) score += 10;
   if (data.requirements && data.requirements.length > 20) score += 5;
+
   return Math.min(score, 100);
 }
 
